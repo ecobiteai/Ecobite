@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoBite — Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  body.app-page{background:var(--paper);overflow-x:hidden;}
+  .app-shell{min-height:100vh;display:grid;grid-template-columns:264px minmax(0,1fr);}
+  .sidebar{position:sticky;top:0;height:100vh;z-index:60;display:flex;flex-direction:column;padding:24px 18px;background:var(--bg-deep);color:var(--paper);overflow-y:auto;}
+  .sidebar-brand{display:flex;align-items:center;gap:10px;padding:0 10px;text-decoration:none;}
+  .sidebar-brand img{width:30px;height:30px;}
+  .sidebar-brand span{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:600;}
+  .sidebar-city{margin:30px 10px 18px;color:rgba(242,239,226,.5);font-size:.78rem;letter-spacing:.03em;}
+  .side-section{margin-top:20px;}
+  .side-label{display:block;padding:0 12px 7px;color:rgba(242,239,226,.42);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;}
+  .side-nav{position:relative;display:grid;gap:3px;}
+  .side-nav::before{content:"";position:absolute;left:17px;top:10px;bottom:10px;width:1px;background:rgba(242,239,226,.14);}
+  .side-link{position:relative;display:flex;align-items:center;gap:11px;width:100%;min-height:42px;padding:8px 10px 8px 12px;border:1px solid transparent;border-radius:12px;background:transparent;color:rgba(242,239,226,.68);font-size:.86rem;text-align:left;transition:background .22s ease,color .22s ease,transform .22s var(--ease);}
+  .side-link:hover{color:var(--paper);background:rgba(242,239,226,.08);transform:translateX(2px);}
+  .side-link[aria-current="page"]{color:var(--paper);background:rgba(210,232,198,.16);border-color:rgba(139,195,74,.18);}
+  .side-link .node{position:relative;z-index:1;width:11px;height:11px;flex:none;border:2px solid rgba(242,239,226,.35);border-radius:50%;background:var(--bg-deep);transition:background .25s ease,border-color .25s ease,box-shadow .25s ease,transform .25s var(--ease);}
+  .side-link[aria-current="page"] .node{background:var(--leaf-bright);border-color:var(--leaf-bright);box-shadow:0 0 0 4px rgba(139,195,74,.14);transform:scale(1.1);}
+  .side-link[data-alert="true"] .node{background:var(--orange);border-color:var(--orange);}
+  .side-link svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;opacity:.9;}
+  .sidebar-footer{margin-top:auto;padding-top:24px;border-top:1px solid rgba(242,239,226,.14);display:grid;gap:4px;}
+  .sidebar-footer .side-link{font-size:.82rem;}
+  .account-mini{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px;border-radius:12px;background:rgba(242,239,226,.07);color:var(--paper);}
+  .avatar{width:32px;height:32px;display:grid;place-items:center;flex:none;border-radius:50%;background:linear-gradient(140deg,var(--leaf-bright),var(--leaf));color:#10230F;font-weight:800;font-size:.8rem;}
+  .account-mini strong{display:block;font-size:.8rem;line-height:1.2;}
+  .account-mini small{display:block;margin-top:2px;color:rgba(242,239,226,.5);font-size:.7rem;}
+  .app-main{min-width:0;}
+  .app-mobile-bar{display:none;}
+  .app-topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:18px;min-height:78px;padding:15px clamp(20px,4vw,46px);background:rgba(242,239,226,.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
+  .search-wrap{position:relative;flex:1;max-width:640px;}
+  .search-wrap>svg{position:absolute;left:14px;top:50%;width:18px;height:18px;transform:translateY(-50%);fill:none;stroke:var(--ink-soft);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;}
+  .search-wrap input{min-height:44px;padding-left:42px;padding-right:56px;border-radius:999px;background:rgba(255,253,246,.72);}
+  .search-shortcut{position:absolute;right:13px;top:50%;transform:translateY(-50%);padding:2px 7px;border:1px solid var(--line);border-radius:6px;color:var(--text-faint);font-size:.7rem;}
+  .search-results{position:absolute;left:0;right:0;top:calc(100% + 9px);display:none;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);}
+  .search-results.show{display:block;animation:popIn .25s var(--ease) both;}
+  .search-group{padding:5px 0 9px;}
+  .search-group+.search-group{border-top:1px solid var(--line);}
+  .search-group>strong{display:block;padding:4px 10px;color:var(--text-faint);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;}
+  .search-result{display:flex;width:100%;gap:10px;padding:9px 10px;border:0;border-radius:10px;background:transparent;color:var(--ink);text-align:left;transition:background .18s ease;}
+  .search-result:hover,.search-result:focus-visible{background:var(--sage);outline:0;}
+  .search-result strong{display:block;font-size:.86rem;}
+  .search-result span{display:block;color:var(--text-faint);font-size:.76rem;}
+  .top-context{display:flex;align-items:center;gap:12px;margin-left:auto;}
+  .top-context small{color:var(--text-faint);font-size:.78rem;}
+  .top-account{display:flex;align-items:center;gap:9px;white-space:nowrap;}
+  .top-account .avatar{width:34px;height:34px;}
+  .top-account strong{display:block;font-size:.8rem;line-height:1.2;}
+  .top-account small{display:block;margin-top:2px;color:var(--text-faint);font-size:.7rem;}
+  .app-content{max-width:1400px;margin:0 auto;padding:0 clamp(20px,4vw,52px) 64px;}
+  .greeting{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:50px 0 28px;}
+  .greeting h1{font-size:clamp(2rem,4vw,3.2rem);margin-bottom:8px;}
+  .greeting p{max-width:62ch;color:var(--ink-soft);}
+  .greeting-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:13px;color:var(--text-faint);font-size:.86rem;}
+  .impact-ledger{display:grid;grid-template-columns:repeat(4,1fr);overflow:hidden;margin-bottom:30px;border:1px solid var(--line-strong);border-radius:18px;background:var(--surface);box-shadow:0 16px 40px -36px rgba(21,35,26,.6);}
+  .impact-cell{padding:20px 22px;border-right:1px solid var(--line);}
+  .impact-cell:last-child{border-right:0;}
+  .impact-cell strong{display:block;font-family:'Fraunces',serif;font-size:clamp(1.5rem,2.5vw,2.1rem);line-height:1.05;}
+  .impact-cell strong small{font-family:'Inter',sans-serif;font-size:.48em;color:var(--text-soft);margin-left:4px;}
+  .impact-cell span{display:block;margin-top:7px;color:var(--text-faint);font-size:.78rem;}
+  .home-grid{display:grid;grid-template-columns:minmax(0,1.62fr) minmax(300px,.82fr);gap:26px;align-items:start;}
+  .home-primary,.home-secondary{display:grid;gap:26px;min-width:0;}
+  .sheet{padding:24px;background:rgba(255,253,246,.72);border:1px solid var(--line);border-radius:20px;box-shadow:0 18px 45px -40px rgba(21,35,26,.55);}
+  .sheet.sage{background:var(--sage);}
+  .sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:18px;}
+  .sheet-head h2{font-size:1.25rem;}
+  .sheet-head p{margin-top:5px;color:var(--text-faint);font-size:.83rem;}
+  .filter-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:17px;}
+  .filter-tab{min-height:34px;padding:6px 11px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink-soft);font-size:.76rem;font-weight:700;transition:background .2s ease,border-color .2s ease,color .2s ease;}
+  .filter-tab:hover,.filter-tab.on{background:var(--sage-strong);border-color:var(--leaf);color:var(--ink);}
+  .offer-list{display:grid;}
+  .offer-row{display:grid;grid-template-columns:12px minmax(0,1fr) auto auto auto;gap:14px;align-items:center;padding:16px 0;border-top:1px solid var(--line);transition:background .25s ease,transform .25s var(--ease);}
+  .offer-row:first-child{border-top:0;}
+  .offer-row:hover{background:rgba(225,240,216,.45);transform:translateX(3px);}
+  .offer-row.urgent{border-top-color:rgba(225,87,63,.26);}
+  .category-dot{width:10px;height:10px;border-radius:50%;background:var(--leaf);}
+  .category-dot.prepared{background:var(--orange);}
+  .category-dot.bakery{background:#A59A78;}
+  .category-dot.chilled{background:var(--aqua);}
+  .offer-row h3{font-family:'Inter',sans-serif;font-size:.9rem;font-weight:700;line-height:1.3;}
+  .offer-row .where{display:block;margin-top:3px;color:var(--text-faint);font-size:.76rem;}
+  .offer-qty{text-align:right;color:var(--text-soft);font-size:.78rem;white-space:nowrap;}
+  .offer-qty strong{display:block;color:var(--ink);font-size:.9rem;}
+  .time-chip{padding:6px 9px;border-radius:999px;background:rgba(21,35,26,.07);color:var(--ink-soft);font-size:.72rem;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums;}
+  .time-chip.warm{background:rgba(242,153,74,.16);color:var(--orange-deep);}
+  .time-chip.urgent{background:rgba(225,87,63,.14);color:#B94735;animation:urgent 2.2s ease-in-out infinite;}
+  .offer-row.claimed{opacity:.66;}
+  .offer-row.claimed .offer-action{display:none;}
+  .claimed-state{display:none;color:var(--leaf);font-size:.78rem;font-weight:800;}
+  .offer-row.claimed .claimed-state{display:inline-flex;align-items:center;gap:5px;}
+  .offer-row.claimed .claimed-state::before{content:"✓";display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:rgba(79,154,82,.14);}
+  .offer-action{min-height:34px;padding:6px 12px;font-size:.76rem;}
+  .empty-note{padding:28px 0;color:var(--text-faint);font-size:.86rem;}
+  .ai-stack{display:grid;gap:14px;}
+  .ai-note{position:relative;padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--surface);overflow:hidden;transition:transform .25s var(--ease),box-shadow .25s ease,border-color .25s ease;}
+  .ai-note:hover{transform:translateY(-4px);border-color:rgba(79,154,82,.45);box-shadow:0 18px 36px -30px rgba(21,35,26,.65);}
+  .ai-note.forecast{background:var(--sage);}
+  .ai-note.match{background:#F4F0E5;}
+  .ai-note.routing-note,.ai-note.route{display:block;background:var(--bg-deep);color:var(--paper);}
+  .ai-note .ai-label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px;color:var(--leaf);font-size:.7rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;}
+  .ai-note.routing-note .ai-label,.ai-note.route .ai-label{color:var(--leaf-bright);}
+  .ai-note h3{font-family:'Fraunces',serif;font-size:1.2rem;margin-bottom:8px;}
+  .ai-note p{color:var(--text-soft);font-size:.82rem;line-height:1.5;}
+  .ai-note.routing-note p,.ai-note.route p{color:rgba(242,239,226,.7);}
+  .ai-note .ai-action{display:inline-flex;align-items:center;margin-top:15px;padding:0;border:0;background:none;color:var(--leaf);font-size:.78rem;font-weight:800;text-decoration:underline;text-underline-offset:3px;}
+  .ai-note .ai-action svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;margin-left:5px;}
+  .ai-note.routing-note .ai-action,.ai-note.route .ai-action{color:var(--orange);}
+  .mini-bars{display:flex;align-items:flex-end;gap:5px;height:54px;margin:16px 0 4px;}
+  .mini-bars span{flex:1;height:var(--bar);min-height:8px;border-radius:4px 4px 2px 2px;background:var(--leaf);opacity:.7;}
+  .mini-bars span.peak{background:var(--orange);opacity:1;}
+  .mini-bars-labels{display:flex;gap:5px;color:var(--text-faint);font-size:.63rem;}
+  .mini-bars-labels span{flex:1;text-align:center;}
+  .match-route{display:flex;align-items:center;gap:7px;margin:14px 0;color:var(--ink-soft);font-size:.78rem;font-weight:700;}
+  .match-route i{width:8px;height:8px;border-radius:50%;background:var(--leaf);}
+  .match-route i:last-child{background:var(--orange);}
+  .match-route b{height:1px;flex:1;background:var(--line-strong);}
+  .ticket-route{display:flex;align-items:center;gap:6px;margin:15px 0 7px;}
+  .ticket-route i{width:9px;height:9px;border-radius:50%;background:var(--leaf-bright);}
+  .ticket-route i.current{background:var(--orange);box-shadow:0 0 0 4px rgba(242,153,74,.16);}
+  .ticket-route b{height:2px;flex:1;background:rgba(242,239,226,.24);}
+  .ticket-meta{display:flex;justify-content:space-between;color:rgba(242,239,226,.56);font-size:.68rem;}
+  .capacity-list{display:grid;}
+  .capacity-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:13px;padding:14px 0;border-top:1px solid var(--line);}
+  .capacity-row:first-child{border-top:0;}
+  .capacity-row strong{display:block;font-size:.84rem;}
+  .capacity-row span{display:block;margin-top:3px;color:var(--text-faint);font-size:.73rem;}
+  .capacity-value{text-align:right;color:var(--ink-soft);font-size:.76rem;font-weight:800;}
+  .meter{height:5px;margin-top:9px;border-radius:5px;background:rgba(21,35,26,.12);overflow:hidden;}
+  .meter i{display:block;height:100%;width:var(--capacity);border-radius:inherit;background:var(--leaf);}
+  .meter i.high{background:var(--orange);}
+  .meter i.full{background:var(--tomato);}
+
+  /* ---------- Secondary views ---------- */
+  .view-intro{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;padding:50px 0 28px;}
+  .view-intro h1{font-size:clamp(2rem,4vw,3rem);margin-bottom:8px;}
+  .view-intro p{max-width:62ch;color:var(--text-soft);}
+  .view-board{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.8fr);gap:26px;align-items:start;}
+  .form-sheet{max-width:780px;padding:28px;background:rgba(255,253,246,.8);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);}
+  .form-sheet h2{font-size:1.25rem;margin-bottom:6px;}
+  .form-sheet>p{color:var(--text-faint);font-size:.84rem;margin-bottom:22px;}
+  .category-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;}
+  .category-choice{min-height:54px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.55);color:var(--ink-soft);font-size:.78rem;font-weight:800;transition:background .2s ease,border-color .2s ease,transform .2s var(--ease);}
+  .category-choice:hover,.category-choice.on{background:var(--sage);border-color:var(--leaf);color:var(--ink);transform:translateY(-2px);}
+  .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:18px;background:var(--surface);}
+  .record-table{width:100%;border-collapse:collapse;min-width:680px;}
+  .record-table th,.record-table td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--line);font-size:.8rem;vertical-align:middle;}
+  .record-table th{color:var(--text-faint);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;}
+  .record-table tbody tr:last-child td{border-bottom:0;}
+  .record-table tbody tr:hover{background:var(--sage);}
+  .record-table td strong{display:block;font-size:.84rem;}
+  .record-table td span{display:block;color:var(--text-faint);font-size:.73rem;margin-top:2px;}
+  .status-text{font-weight:800;color:var(--leaf);}
+  .status-text.waiting{color:var(--orange-deep);}
+  .status-text.done{color:var(--ink-soft);}
+  .route-board{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .route-column{min-width:0;padding:18px;background:var(--sage);border:1px solid var(--line);border-radius:18px;}
+  .route-column h2{font-size:1rem;margin-bottom:14px;}
+  .route-ticket{padding:16px;margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 28px -28px rgba(21,35,26,.8);}
+  .route-ticket:first-of-type{margin-top:0;}
+  .route-ticket strong{display:block;font-size:.88rem;}
+  .route-ticket span{display:block;margin-top:4px;color:var(--text-faint);font-size:.75rem;}
+  .route-ticket .btn{margin-top:13px;width:100%;}
+  .detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  .detail-cell{padding:17px;background:var(--sage);border:1px solid var(--line);border-radius:14px;}
+  .detail-cell strong{display:block;font-family:'Fraunces',serif;font-size:1.2rem;}
+  .detail-cell span{display:block;margin-top:4px;color:var(--text-faint);font-size:.76rem;}
+  .empty-state{padding:48px 22px;text-align:center;background:var(--sage);border:1px dashed var(--line-strong);border-radius:18px;}
+  .empty-state h2{font-size:1.35rem;margin-bottom:8px;}
+  .empty-state p{max-width:45ch;margin:0 auto 18px;color:var(--text-soft);font-size:.86rem;}
+  .toast{position:fixed;right:24px;bottom:24px;z-index:100;max-width:360px;padding:13px 17px;background:var(--bg-deep);color:var(--paper);border:1px solid rgba(139,195,74,.3);border-radius:12px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .25s ease,transform .25s var(--ease);font-size:.82rem;}
+  .toast.show{opacity:1;transform:none;}
+  .mobile-menu{display:none;}
+
+  @media (max-width:1100px){
+    .app-shell{grid-template-columns:232px minmax(0,1fr);}
+    .home-grid,.view-board{grid-template-columns:1fr;}
+    .home-secondary{grid-template-columns:repeat(3,1fr);align-items:start;}
+    .ai-stack{grid-column:1 / -1;grid-template-columns:repeat(3,1fr);}
+  }
+  @media (max-width:980px){
+    .app-shell{display:block;}
+    .sidebar{position:fixed;left:0;top:0;width:264px;transform:translateX(-102%);transition:transform .3s var(--ease);box-shadow:20px 0 50px -35px rgba(21,35,26,.8);}
+    .sidebar.is-open{transform:none;}
+    .mobile-menu{display:inline-flex;width:42px;height:42px;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:50%;background:var(--surface);color:var(--ink);}
+    .mobile-menu svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;}
+    .app-mobile-bar{position:sticky;top:0;z-index:55;display:flex;align-items:center;gap:12px;padding:12px 20px;background:rgba(242,239,226,.94);border-bottom:1px solid var(--line);backdrop-filter:blur(14px);}
+    .app-mobile-bar .brand{margin-right:auto;}
+    .app-mobile-bar .brand img{height:25px;}
+    .app-topbar{top:0;}
+    .top-context{display:none;}
+    .home-secondary{grid-template-columns:1fr;}
+    .ai-stack{grid-template-columns:1fr;}
+  }
+  @media (max-width:720px){
+    .app-topbar{padding:12px 20px;}
+    .app-topbar>.top-account{display:none;}
+    .greeting,.view-intro{align-items:flex-start;flex-direction:column;padding:34px 0 24px;}
+    .greeting .btn,.view-intro .btn{width:100%;}
+    .impact-ledger{grid-template-columns:repeat(2,1fr);}
+    .impact-cell:nth-child(2){border-right:0;}
+    .impact-cell:nth-child(-n+2){border-bottom:1px solid var(--line);}
+    .offer-row{grid-template-columns:10px minmax(0,1fr) auto;gap:10px;}
+    .offer-qty{grid-column:2;text-align:left;}
+    .offer-row .time-chip{grid-column:3;grid-row:1;}
+    .offer-row .offer-action,.offer-row .claimed-state{grid-column:2 / -1;justify-self:start;}
+    .category-picker{grid-template-columns:repeat(2,1fr);}
+    .route-board{grid-template-columns:1fr;}
+    .detail-grid{grid-template-columns:1fr;}
+    .search-shortcut{display:none;}
+  }
+  @media (max-width:520px){
+    .app-content{padding-left:20px;padding-right:20px;}
+    .impact-cell{padding:16px 14px;}
+    .sheet{padding:19px 16px;}
+    .sheet-head{display:block;}
+    .filter-tabs{margin-top:15px;}
+    .toast{right:16px;left:16px;bottom:16px;max-width:none;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .side-link:hover,.offer-row:hover,.ai-note:hover,.category-choice:hover,.btn:hover:not(:active):not(:disabled){transform:none;}
+    .time-chip.urgent{animation:none;}
+    .search-results{animation:none;}
+  }
+</style>
+</head>
+<body class="app-page">
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar" aria-label="EcoBite navigation">
+    <a class="sidebar-brand" href="?view=home"><img src="logo-icon.webp" alt=""><span>ecobite</span></a>
+    <p class="sidebar-city">FIELD STATION · <span id="sideCity">Visakhapatnam</span></p>
+    <section class="side-section"><span class="side-label">Navigate</span><nav class="side-nav" id="mainNav">
+      <button class="side-link" data-view="home" aria-current="page"><i class="node"></i><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5M9.5 20v-5h5v5"/></svg><span>Home</span></button>
+      <button class="side-link" data-view="donate"><i class="node"></i><svg viewBox="0 0 24 24"><path d="M4 9h16l-1.2 10.2a2 2 0 0 1-2 1.8H7.2a2 2 0 0 1-2-1.8L4 9Z"/><path d="M8.5 9V6.5a3.5 3.5 0 0 1 7 0V9"/></svg><span>Donate</span></button>
+      <button class="side-link" data-view="receive"><i class="node"></i><svg viewBox="0 0 24 24"><path d="M3 21V10l9-6 9 6v11"/><path d="M9 21v-6h6v6M3 21h18"/></svg><span>Receive</span></button>
+    </nav></section>
+    <section class="side-section"><span class="side-label">Your records</span><nav class="side-nav">
+      <button class="side-link" data-view="donations"><i class="node"></i><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg><span>Your donations</span></button>
+      <button class="side-link" data-view="receives"><i class="node"></i><svg viewBox="0 0 24 24"><path d="M4 7h16v13H4zM8 7V4h8v3M8 12h8M8 16h5"/></svg><span>Your receives</span></button>
+    </nav></section>
+    <section class="side-section"><span class="side-label">Rescue tools</span><nav class="side-nav">
+      <button class="side-link" data-view="forecast"><i class="node"></i><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="m7 15 3-4 3 2 5-7"/></svg><span>Surplus forecast</span></button>
+      <button class="side-link" data-view="matching"><i class="node"></i><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="16" r="3"/><path d="m10.2 10.2 3.6 3.6M16 5v3M5 16h3"/></svg><span>Nearby matching</span></button>
+      <button class="side-link" data-view="routing"><i class="node"></i><svg viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h3a4 4 0 0 0 4-4V10a4 4 0 0 1 4-4"/></svg><span>Pickup routing</span></button>
+    </nav></section>
+    <div class="sidebar-footer"><button class="side-link" data-view="profile"><i class="node"></i><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5 20a7 7 0 0 1 14 0"/></svg><span>Profile</span></button><button class="side-link" data-view="settings"><i class="node"></i><svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="m19 13 2 1-2 3-2-1M5 13l-2 1 2 3 2-1M13 5l1-2h-4l1 2M13 19l1 2h-4l1-2"/></svg><span>Settings</span></button><div class="account-mini"><span class="avatar" id="sideAvatar">P</span><span><strong id="sideName">Priya Menon</strong><small id="sideRole">Connected account</small></span></div><button class="side-link" id="signOutLink"><i class="node"></i><svg viewBox="0 0 24 24"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"/></svg><span>Sign out</span></button></div>
+  </aside>
+  <div class="app-main">
+    <div class="app-mobile-bar"><button class="mobile-menu" id="mobileMenu" aria-expanded="false" aria-controls="sidebar"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span class="visually-hidden">Open menu</span></button><a class="brand" href="?view=home"><img src="logo-icon.webp" alt=""><span>ecobite</span></a><span class="avatar" id="mobileAvatar">P</span></div>
+    <header class="app-topbar">
+      <div class="search-wrap"><svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg><input id="globalSearch" type="search" placeholder="Search offers, pickups, partners" aria-label="Search offers, pickups, partners" aria-controls="searchResults" autocomplete="off"><span class="search-shortcut">/</span><div class="search-results" id="searchResults" role="listbox"></div></div>
+      <div class="top-context"><small>Today · <span id="topCity">Visakhapatnam</span></small><span class="pill pill-leaf">Rescue desk</span></div>
+      <div class="top-account"><span class="avatar" id="topAvatar">P</span><span><strong id="topName">Priya Menon</strong><small id="topRole">Connected account</small></span></div>
+    </header>
+    <main class="app-content" id="viewMount" tabindex="-1"></main>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="supabase-client.js"></script>
+<script>
+(async () => {
+  const reduceMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reduceMotion = reduceMotionQuery.matches;
+  if(reduceMotionQuery.addEventListener) reduceMotionQuery.addEventListener('change', () => { reduceMotion = reduceMotionQuery.matches; });
+  const preview = new URLSearchParams(window.location.search).has('preview');
+  let session = null;
+  let profile = {full_name:'Priya Menon',city:'Visakhapatnam',role:'org'};
+
+  if(!preview){
+    const sessionResult = await sb.auth.getSession();
+    session = sessionResult.data.session;
+    if(!session){ window.location.replace('signin.html'); return; }
+    const profileResult = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+    if(profileResult.error || !profileResult.data){ window.location.replace('signup.html'); return; }
+    profile = {...profileResult.data, full_name:profileResult.data.full_name || session.user.email};
+  }
+
+  const firstName = (profile.full_name || 'Friend').split(' ')[0];
+  const roleNames = {donor:'Food donor',org:'Receiving organisation',driver:'Volunteer driver'};
+  const roleName = roleNames[profile.role] || 'EcoBite member';
+  const initial = firstName.charAt(0).toUpperCase();
+  ['sideCity','topCity'].forEach(id => document.getElementById(id).textContent = profile.city || 'Your city');
+  ['sideName','topName'].forEach(id => document.getElementById(id).textContent = profile.full_name || 'EcoBite member');
+  ['sideRole','topRole'].forEach(id => document.getElementById(id).textContent = roleName);
+  ['sideAvatar','topAvatar','mobileAvatar'].forEach(id => document.getElementById(id).textContent = initial);
+
+  const OFFERS = [
+    {id:'offer-1',kind:'chilled',name:'Sandwiches & salads',from:'Harbour Café · 1.9 km',qty:'18',unit:'portions',time:'35 min left',urgent:true},
+    {id:'offer-2',kind:'produce',name:'Mixed produce',from:'Green Grocer Market · 2.4 km',qty:'22',unit:'kg',time:'1h 05m left',warm:true},
+    {id:'offer-3',kind:'prepared',name:'Cooked biryani',from:'Rosa’s Kitchen · 1.2 km',qty:'14',unit:'portions',time:'2h 40m left'},
+    {id:'offer-4',kind:'prepared',name:'Dal & rice',from:'Sea View Hotel · 3.3 km',qty:'40',unit:'portions',time:'3h 15m left'},
+    {id:'offer-5',kind:'bakery',name:'Loaves & pastries',from:'Daily Bread Bakery · 0.8 km',qty:'30',unit:'items',time:'5h 10m left'},
+    {id:'offer-6',kind:'produce',name:'Tomatoes',from:'Coastal Farms · 6.1 km',qty:'60',unit:'kg',time:'9h 30m left'}
+  ];
+  const CAPACITY = [
+    {name:'St. Anne’s Shelter',what:'Hot meals, chilled · 0.6 km',value:28},
+    {name:'Eastside Community Fridge',what:'Chilled and dry goods · 1.4 km',value:64},
+    {name:'Harbour Kitchen',what:'Dry goods only · 2.8 km',value:88}
+  ];
+  const RUNS = [
+    {id:'418',driver:'Arun R.',path:'Green Grocer Market → Eastside Community Fridge',eta:'12 min away',stage:'In transit'},
+    {id:'419',driver:'Meera P.',path:'Rosa’s Kitchen → St. Anne’s Shelter',eta:'24 min away',stage:'Collected'},
+    {id:'417',driver:'Sanjay K.',path:'Daily Bread Bakery → Harbour Kitchen',eta:'4 min away',stage:'In transit'}
+  ];
+  const SEARCH_INDEX = [
+    {type:'Food available',title:'Sandwiches & salads',meta:'Harbour Café · 1.9 km',view:'receive',target:'offer-1'},
+    {type:'Food available',title:'Mixed produce',meta:'Green Grocer Market · 22 kg',view:'receive',target:'offer-2'},
+    {type:'Pickups',title:'Run #418',meta:'Green Grocer Market → Eastside Community Fridge',view:'routing'},
+    {type:'Locations',title:'St. Anne’s Shelter',meta:'Chilled food · 28% storage in use',view:'matching'}
+  ];
+  let currentView = new URLSearchParams(window.location.search).get('view') || 'home';
+  let currentFilter = 'all';
+  let claimOffer = null;
+  let trackingWatchId = null;
+  const viewMount = document.getElementById('viewMount');
+  const toast = document.getElementById('toast');
+  let toastTimer;
+
+  const showToast = message => { toast.textContent = message; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 3200); };
+  const icon = name => ({search:'<svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>',arrow:'<svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></svg>'}[name] || '');
+  const offerRows = (filter = currentFilter) => {
+    const offers = OFFERS.filter(item => filter === 'all' || item.kind === filter);
+    if(!offers.length) return '<p class="empty-note">No offers in this category right now. Check all food types or come back later.</p>';
+    return '<div class="offer-list">' + offers.map(item => `<article class="offer-row ${item.urgent?'urgent ':''}${item.claimed?'claimed':''}" id="${item.id}" data-kind="${item.kind}"><i class="category-dot ${item.kind}"></i><span><h3>${item.name}</h3><span class="where">${item.from}</span></span><span class="offer-qty"><strong>${item.qty}</strong>${item.unit}</span><span class="time-chip ${item.urgent?'urgent ':item.warm?'warm':''}">${item.time}</span><button class="btn btn-leaf btn-sm offer-action" data-offer="${item.id}">Claim</button><span class="claimed-state">Claimed</span></article>`).join('') + '</div>';
+  };
+  const capacityRows = () => '<div class="capacity-list">' + CAPACITY.map(item => `<div class="capacity-row"><div><strong>${item.name}</strong><span>${item.what}</span><div class="meter"><i class="${item.value >= 85?'full':item.value >= 55?'high':''}" style="--capacity:${item.value}%"></i></div></div><div class="capacity-value">${item.value}%</div></div>`).join('') + '</div>';
+  const miniBars = () => '<div class="mini-bars">' + [42,58,35,94,72,82,31].map((value,index) => `<span class="${index===3?'peak':''}" style="--bar:${value}%"></span>`).join('') + '</div><div class="mini-bars-labels">' + ['M','T','W','T','F','S','S'].map(day => `<span>${day}</span>`).join('') + '</div>';
+  const routeTicket = run => `<article class="route-ticket"><strong>Run #${run.id} · ${run.driver}</strong><span>${run.path}</span><span>${run.eta} · ${run.stage}</span><div class="ticket-route"><i></i><b></b><i class="current"></i><b></b><i></i></div><div class="ticket-meta"><span>Collected</span><span>In transit</span><span>Delivered</span></div><button class="btn btn-outline btn-sm" data-open-view="routing">Open route</button></article>`;
+  const navButton = view => `<button class="btn btn-outline btn-sm" data-open-view="${view}">Open view ${icon('arrow')}</button>`;
+
+  const HOME = () => `<section class="view view-home"><div class="greeting"><div><h1>Good afternoon, ${firstName}.</h1><p>Here is what needs attention in your local rescue network today.</p><div class="greeting-meta"><span class="pill pill-leaf">${roleName}</span><span>6 offers need a receiving location today.</span></div></div><button class="btn btn-primary" data-open-view="receive">Review available food</button></div><section class="impact-ledger" aria-label="Your impact"><div class="impact-cell"><strong id="impactMeals">2,480</strong><span>Meals rescued this month</span></div><div class="impact-cell"><strong>1,140<small>kg</small></strong><span>Food diverted from waste</span></div><div class="impact-cell"><strong>3.2<small>t CO₂e</small></strong><span>Emissions avoided</span></div><div class="impact-cell"><strong>37</strong><span>Partners active nearby</span></div></section><div class="home-grid"><div class="home-primary"><section class="sheet" id="offersSheet"><div class="sheet-head"><div><h2>Food available now</h2><p>Sorted by how soon it stops being good to eat.</p></div><span class="pill pill-orange">6 offers</span></div><div class="filter-tabs" id="homeFilters">${['all','prepared','produce','bakery','chilled'].map(filter => `<button class="filter-tab ${currentFilter===filter?'on':''}" data-filter="${filter}">${filter.charAt(0).toUpperCase()+filter.slice(1)}</button>`).join('')}</div><div id="homeOfferList">${offerRows()}</div></section><section class="sheet sage"><div class="sheet-head"><div><h2>Storage nearby</h2><p>Capacity that can take the next handoff.</p></div><button class="btn btn-ghost btn-sm" data-open-view="matching">View matches</button></div>${capacityRows()}</section></div><aside class="home-secondary"><div><div class="sheet-head"><div><h2>Best next move</h2><p>Three explainable signals from the current rescue data.</p></div></div><div class="ai-stack"><article class="ai-note forecast"><div class="ai-label"><span>Surplus forecast</span><span class="pill pill-leaf">This week</span></div><h3>Expect more offers after 5:30 pm.</h3><p>Thursday has the strongest rescue pattern, and nearby kitchens usually flag food at close.</p>${miniBars()}<button class="ai-action" data-open-view="forecast">See weekly pattern ${icon('arrow')}</button></article><article class="ai-note match"><div class="ai-label"><span>Nearby matching</span><span class="pill pill-quiet">Fits storage</span></div><h3>Sandwiches & salads → St. Anne’s Shelter</h3><div class="match-route"><i></i><b></b><i></i></div><p>0.6 km away · takes chilled food · 28% storage in use.</p><button class="ai-action" data-open-view="matching">Review match ${icon('arrow')}</button></article><article class="ai-note route"><div class="ai-label"><span>Pickup routing</span><span>12 min away</span></div><h3>Run #418 is closest to expiry.</h3><p>Green Grocer Market → Eastside Community Fridge</p><div class="ticket-route"><i></i><b></b><i class="current"></i><b></b><i></i></div><div class="ticket-meta"><span>Collected</span><span>In transit</span><span>Delivered</span></div><button class="ai-action" data-open-view="routing">Open route ${icon('arrow')}</button></article></div></div></aside></div></section>`;
+  const DONATE = () => `<section class="view"><div class="view-intro"><div><h1>Food available to collect</h1><p>Add what is left, how much there is, and when it needs collecting. Your organisation and location come from Profile.</p></div><span class="pill pill-leaf">Donor workspace</span></div><div class="view-board"><form class="form-sheet" id="donateForm"><h2>Flag food available</h2><p>Keep this short enough to use at close of day.</p><label class="field"><span>Food category</span><div class="category-picker"><button type="button" class="category-choice on" data-category="Prepared">Prepared</button><button type="button" class="category-choice" data-category="Produce">Produce</button><button type="button" class="category-choice" data-category="Bakery">Bakery</button><button type="button" class="category-choice" data-category="Chilled">Chilled</button></div></label><label class="field"><span>What is available?</span><input name="food" required placeholder="e.g. Vegetable biryani"></label><div class="field-row"><label class="field"><span>Quantity</span><input name="quantity" type="number" min="1" required placeholder="18"></label><label class="field"><span>Unit</span><select name="unit"><option>portions</option><option>kg</option><option>items</option><option>crates</option></select></label></div><label class="field"><span>Collect by</span><select name="deadline"><option>Within 1 hour</option><option>This afternoon</option><option>This evening</option><option>Choose a time later</option></select></label><button class="btn btn-primary" type="submit">Flag food available</button></form><section class="sheet sage"><div class="sheet-head"><div><h2>Today’s handoffs</h2><p>Offers you have already shared.</p></div></div><div class="empty-state"><h2>Ready when you are.</h2><p>Food you flag will appear here with its collection status and destination.</p></div></section></div></section>`;
+  const RECEIVE = () => `<section class="view"><div class="view-intro"><div><h1>Food available nearby</h1><p>Choose what fits your storage and collection window. Every recommendation explains why it belongs with you.</p></div><button class="btn btn-primary" data-open-view="matching">Find the best match</button></div><div class="table-wrap"><table class="record-table"><thead><tr><th>Food</th><th>From</th><th>Amount</th><th>Collect by</th><th>Storage fit</th><th></th></tr></thead><tbody>${OFFERS.map(item => `<tr id="${item.id}"><td><strong>${item.name}</strong><span>${item.kind}</span></td><td>${item.from}</td><td>${item.qty} ${item.unit}</td><td><span class="status-text ${item.urgent?'waiting':''}">${item.time}</span></td><td><span class="status-text">Fits chilled room</span></td><td><button class="btn btn-leaf btn-sm offer-action" data-offer="${item.id}">Claim</button></td></tr>`).join('')}</tbody></table></div></section>`;
+  const RECORDS = type => `<section class="view"><div class="view-intro"><div><h1>${type==='donations'?'Your donations':'Your receives'}</h1><p>${type==='donations'?'A clear record of food you have flagged and where it landed.':'Food your organisation has claimed, collected, and received.'}</p></div><span class="pill pill-quiet">Updated just now</span></div><div class="table-wrap"><table class="record-table"><thead><tr><th>Food</th><th>Partner</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead><tbody>${(type==='donations'?[['Mixed produce','Green Grocer Market','22 kg','Today','Delivered'],['Cooked biryani','Rosa’s Kitchen','14 portions','Yesterday','Collected'],['Loaves & pastries','Daily Bread Bakery','30 items','Mon 12 Aug','Awaiting collection']]:[['Sandwiches & salads','Harbour Café','18 portions','Today','Collection arranged'],['Tomatoes','Coastal Farms','60 kg','Yesterday','Received'],['Dal & rice','Sea View Hotel','40 portions','Sun 11 Aug','Received']]).map(row => `<tr><td><strong>${row[0]}</strong><span>${type==='donations'?'Offer':'Receive record'}</span></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td><span class="status-text ${row[4].includes('Awaiting')?'waiting':row[4].includes('Delivered')||row[4].includes('Received')?'done':''}">${row[4]}</span></td></tr>`).join('')}</tbody></table></div></section>`;
+  const FORECAST = () => `<section class="view"><div class="view-intro"><div><h1>Expected surplus</h1><p>Use recent rescue activity and partner timing to plan the next collection window.</p></div><span class="pill pill-leaf">Derived from this week</span></div><div class="view-board"><section class="sheet"><div class="sheet-head"><div><h2>Meals rescued by day</h2><p>Thursday has the highest rescue volume in the current week.</p></div></div><div class="mini-bars" style="height:220px;gap:14px;align-items:flex-end;">${[42,58,35,94,72,82,31].map((value,index) => `<span class="${index===3?'peak':''}" style="--bar:${value}%;height:var(--bar)"></span>`).join('')}</div><div class="mini-bars-labels" style="font-size:.8rem;gap:14px;">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(day => `<span>${day}</span>`).join('')}</div></section><section class="sheet sage"><div class="sheet-head"><div><h2>What the pattern says</h2><p>Not a promise — a useful planning signal.</p></div></div><div class="detail-grid"><div class="detail-cell"><strong>5:30–8 pm</strong><span>Likely busy window</span></div><div class="detail-cell"><strong>Thursday</strong><span>Strongest rescue day</span></div><div class="detail-cell"><strong>3.2 t</strong><span>CO₂e avoided this month</span></div><div class="detail-cell"><strong>37</strong><span>Partners active nearby</span></div></div></section></div></section>`;
+  const MATCHING = () => `<section class="view"><div class="view-intro"><div><h1>Nearby matching</h1><p>Compare storage, distance, food category, and pickup readiness before you claim an offer.</p></div><span class="pill pill-leaf">Reasoned recommendations</span></div><div class="table-wrap"><table class="record-table"><thead><tr><th>Available food</th><th>Receiving location</th><th>Storage fit</th><th>Distance</th><th>Storage in use</th><th></th></tr></thead><tbody>${[['Sandwiches & salads','St. Anne’s Shelter','Chilled food','0.6 km','28%','Recommended'],['Mixed produce','Eastside Community Fridge','Dry + chilled','1.4 km','64%','Review'],['Cooked biryani','Harbour Kitchen','Dry goods','2.8 km','88%','Review']].map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td><td><button class="btn ${row[5]==='Recommended'?'btn-leaf':'btn-outline'} btn-sm" data-open-view="receive">${row[5]}</button></td></tr>`).join('')}</tbody></table></div></section>`;
+  const ROUTING = () => `<section class="view"><div class="view-intro"><div><h1>Pickup routing</h1><p>Follow the actual handoff stage. EcoBite keeps the urgent run visible without pretending there is a map where there is not.</p></div><span class="pill pill-orange">3 routes moving</span></div><div class="route-board"><section class="route-column"><h2>Ready to collect</h2>${routeTicket({...RUNS[1],stage:'Ready to collect'})}</section><section class="route-column"><h2>In transit</h2>${routeTicket(RUNS[0])}${routeTicket(RUNS[2])}</section><section class="route-column"><h2>Delivered</h2><article class="route-ticket"><strong>Run #416 · Kavya S.</strong><span>Harbour Café → St. Anne’s Shelter</span><span>Delivered 24 min ago</span><div class="ticket-route"><i></i><b></b><i></i><b></b><i class="current"></i></div><div class="ticket-meta"><span>Collected</span><span>In transit</span><span>Delivered</span></div></article></section></div></section>`;
+  const PROFILE = () => `<section class="view"><div class="view-intro"><div><h1>Profile</h1><p>Keep the details that help EcoBite greet you and route food correctly.</p></div><span class="pill pill-leaf">${roleName}</span></div><form class="form-sheet" id="profileForm"><h2>Personal details</h2><p>Choose the role that fits today. Storage, availability, and organisation details can follow in Settings.</p><label class="field"><span>Full name</span><input name="full_name" value="${profile.full_name || ''}" required></label><label class="field"><span>City</span><input name="city" value="${profile.city || ''}" required></label><label class="field"><span>How you participate</span><select name="role"><option value="donor" ${profile.role==='donor'?'selected':''}>Food donor</option><option value="org" ${profile.role==='org'?'selected':''}>Receiving organisation</option><option value="driver" ${profile.role==='driver'?'selected':''}>Volunteer driver</option></select></label><button class="btn btn-primary" type="submit">Save profile</button></form></section>`;
+  const SETTINGS = () => `<section class="view"><div class="view-intro"><div><h1>Settings</h1><p>Set the signals EcoBite uses to make practical recommendations.</p></div><span class="pill pill-quiet">Personal controls</span></div><div class="view-board"><form class="form-sheet" id="settingsForm"><h2>Rescue preferences</h2><p>These settings stay local in this prototype and are ready to connect to your profile later.</p><label class="field"><span>Availability window</span><select><option>Today, 5:30–8:00 pm</option><option>Weekday mornings</option><option>Weekends</option><option>On call</option></select></label><label class="field"><span>Storage you can offer</span><div class="chips"><label class="chip"><input type="checkbox" checked><span>Chilled</span></label><label class="chip"><input type="checkbox"><span>Frozen</span></label><label class="chip"><input type="checkbox" checked><span>Dry goods</span></label></div></label><label class="field"><span>Route updates</span><div class="chips"><label class="chip"><input type="checkbox" checked><span>Email</span></label><label class="chip"><input type="checkbox" checked><span>Dashboard</span></label></div></label><button class="btn btn-primary" type="submit">Save settings</button></form><section class="sheet sage"><div class="sheet-head"><div><h2>Account</h2><p>Authentication stays managed by Supabase.</p></div></div><div class="detail-grid"><div class="detail-cell"><strong>Protected</strong><span>Email and password sign-in</span></div><div class="detail-cell"><strong>Private</strong><span>Your profile and records</span></div></div></section></div></section>`;
+
+  const NETWORK = () => {
+    if(profile.role === 'org') return `<section class="view"><div class="view-intro"><div><h1>Find donors</h1><p>Search verified food donors in ${profile.city || 'your city'} and request a delivery.</p></div></div><div class="view-board"><section class="sheet"><label class="field"><span>Search donors</span><input id="networkQuery" placeholder="Name, business, or food type"></label><div id="networkResults"><p class="empty-note">Searching registered donors…</p></div></section><form class="form-sheet" id="deliveryRequestForm" hidden><h2>Request delivery</h2><input type="hidden" name="donor_id"><p id="selectedDonor"></p><label class="field"><span>Food summary</span><input name="food_summary" required></label><div class="field-row"><label class="field"><span>Pickup latitude</span><input name="pickup_latitude" type="number" step="any" required></label><label class="field"><span>Pickup longitude</span><input name="pickup_longitude" type="number" step="any" required></label></div><div class="field-row"><label class="field"><span>Destination latitude</span><input name="dropoff_latitude" type="number" step="any" required></label><label class="field"><span>Destination longitude</span><input name="dropoff_longitude" type="number" step="any" required></label></div><label class="field"><span>Delivery type</span><select name="delivery_mode"><option value="free">Free volunteer delivery</option><option value="paid">Paid delivery</option></select></label><label class="field"><span>Offer amount (optional)</span><input name="offered_amount" type="number" min="0" step="0.01"></label><label class="field"><span>Notes</span><input name="notes"></label><button class="btn btn-primary">Create delivery request</button></form></div></section>`;
+    if(profile.role === 'donor') return `<section class="view"><div class="view-intro"><div><h1>Find a driver</h1><p>Choose free volunteers or paid delivery support without exposing live location.</p></div></div><section class="sheet"><label class="field"><span>Delivery preference</span><select id="driverMode"><option value="free">Free only</option><option value="paid">Paid only</option></select></label><div id="networkResults"><p class="empty-note">Loading available drivers…</p></div></section></section>`;
+    return `<section class="view"><div class="view-intro"><div><h1>Driver dispatch</h1><p>Set your availability, then claim a delivery when you are ready.</p></div></div><div class="view-board"><form class="form-sheet" id="driverPreferences"><h2>Delivery preferences</h2><label class="field"><span>Service city</span><input name="service_city" value="${escapeHtml(profile.city || '')}" required></label><label class="field"><span>Delivery option</span><select name="delivery_mode"><option value="free">Free</option><option value="paid">Paid</option><option value="both">Both</option></select></label><label class="field"><span>Base fee</span><input name="base_fee" type="number" min="0" step="0.01"></label><label class="field"><span>Maximum distance (km)</span><input name="max_distance_km" type="number" min="1" value="15"></label><label class="chip"><input name="is_available" type="checkbox" checked><span>Available for deliveries</span></label><button class="btn btn-primary">Save availability</button></form><section class="sheet"><h2>Open delivery jobs</h2><div id="networkResults"><p class="empty-note">Loading dispatch…</p></div></section></div></section>`;
+  };
+  const ROUTING_LIVE = () => `<section class="view"><div class="view-intro"><div><h1>Pickup routing</h1><p>Real delivery status and private tracking for deliveries you participate in.</p></div></div><section class="sheet"><div id="deliveryRows"><p class="empty-note">Loading deliveries…</p></div></section><section class="sheet" id="routePanel" hidden><div class="sheet-head"><div><h2>Private route tracking</h2><p id="routeStatus">Loading route…</p></div></div><div id="routeMap" style="height:320px;border-radius:14px;overflow:hidden"></div></section></section>`;
+  // Empty states are shown until real donations and received-food records are available.
+  const EMPTY_RECEIVE = () => `<section class="view"><div class="view-intro"><div><h1>Food available nearby</h1><p>Choose what fits your storage and collection window.</p></div></div><div class="empty-state"><h2>No food available yet.</h2><p>New food offers from verified donors will appear here when they are available.</p></div></section>`;
+  const EMPTY_RECORDS = type => `<section class="view"><div class="view-intro"><div><h1>${type === 'donations' ? 'Your donations' : 'Your receives'}</h1><p>${type === 'donations' ? 'A clear record of food you have flagged and where it landed.' : 'Food your organisation has claimed, collected, and received.'}</p></div></div><div class="empty-state"><h2>${type === 'donations' ? 'No donations yet.' : 'No received food yet.'}</h2><p>${type === 'donations' ? 'Your donations will appear here after you flag food as available.' : 'Food you claim and receive will appear here.'}</p></div></section>`;
+
+  const LIVE_RECEIVE = () => `<section class="view"><div class="view-intro"><div><h1>Food available nearby</h1><p>Open donations from verified donors in ${escapeHtml(profile.city || 'your area')}.</p></div></div><div id="receiveOfferList"><p class="empty-note">Loading available food…</p></div></section>`;
+  const LIVE_RECORDS = type => `<section class="view"><div class="view-intro"><div><h1>${type === 'donations' ? 'Your donations' : 'Your receives'}</h1><p>${type === 'donations' ? 'Food you have flagged as available.' : 'Food your organisation has claimed.'}</p></div></div><div id="recordList"><p class="empty-note">Loading your records…</p></div></section>`;
+
+  const CLAIM = () => {
+    if (!claimOffer) return `<section class="view"><div class="empty-state"><h2>Choose an offer first.</h2><p>Return to available food and select Claim.</p><button class="btn btn-primary" data-open-view="receive">View available food</button></div></section>`;
+    return `<section class="view"><div class="view-intro"><div><h1>Arrange collection</h1><p>Confirm the handoff details before claiming this offer.</p></div><button class="btn btn-ghost btn-sm" data-open-view="receive">Back to offers</button></div><div class="view-board"><form class="form-sheet" id="claimOfferForm"><h2>${escapeHtml(claimOffer.food_name)}</h2><p>${escapeHtml(claimOffer.quantity)} ${escapeHtml(claimOffer.unit)} · Collect by ${escapeHtml(claimOffer.collect_by)}</p><label class="field"><span>Contact name</span><input name="contact_name" required value="${escapeHtml(profile.full_name || '')}" autocomplete="name"></label><label class="field"><span>Phone number</span><input name="phone" type="tel" required placeholder="e.g. +91 98765 43210" autocomplete="tel"></label><label class="field"><span>Collection address</span><textarea name="address" required rows="3" placeholder="Building, street, area, and arrival instructions"></textarea><small class="help">Visible only to the donor and any arranged driver.</small></label><label class="field"><span>How will the food be collected?</span><select name="pickup_mode" required><option value="self">We will collect it ourselves</option><option value="driver">Please arrange a volunteer driver</option></select></label><label class="field"><span>Notes for the handoff (optional)</span><textarea name="notes" rows="3" placeholder="Loading entrance, preferred call time, storage notes…"></textarea></label><button class="btn btn-primary" type="submit">Confirm claim</button></form><section class="sheet sage"><h2>What happens next</h2><p>The donor receives your pickup plan and contact details. Driver requests can use these same private handoff details.</p></section></div></section>`;
+  };
+
+  const offerTable = (offers, mode) => {
+    if (!offers.length) {
+      const copy = mode === 'donations' ? ['No donations yet.', 'Your donations will appear here after you flag food as available.'] : mode === 'receives' ? ['No received food yet.', 'Food you claim and receive will appear here.'] : ['No food available yet.', 'New food offers from verified donors will appear here when they are available.'];
+      return `<div class="empty-state"><h2>${copy[0]}</h2><p>${copy[1]}</p></div>`;
+    }
+    return `<div class="table-wrap"><table class="record-table"><thead><tr><th>Food</th><th>Donor</th><th>Amount</th><th>Collect by</th><th>Status</th>${mode === 'available' ? '<th></th>' : ''}</tr></thead><tbody>${offers.map(offer => `<tr><td><strong>${escapeHtml(offer.food_name)}</strong><span>${escapeHtml(offer.category)}</span></td><td>${escapeHtml(offer.donor?.org_name || offer.donor?.full_name || 'EcoBite donor')}</td><td>${escapeHtml(offer.quantity)} ${escapeHtml(offer.unit)}</td><td>${escapeHtml(offer.collect_by)}</td><td><span class="status-text ${offer.status === 'open' ? 'waiting' : 'done'}">${escapeHtml(offer.status)}</span></td>${mode === 'available' ? `<td><button class="btn btn-leaf btn-sm" data-claim-offer="${offer.id}">Claim</button></td>` : ''}</tr>`).join('')}</tbody></table></div>`;
+  };
+
+  const loadOffers = async (mode) => {
+    const target = document.getElementById(mode === 'available' ? 'receiveOfferList' : 'recordList');
+    if (!target || !session) return;
+    let query = sb.from('food_offers').select('*, donor:profiles!food_offers_donor_id_fkey(full_name,org_name)').order('created_at', { ascending: false });
+    if (mode === 'available') query = query.eq('status', 'open').eq('city', profile.city);
+    if (mode === 'donations') query = query.eq('donor_id', session.user.id);
+    if (mode === 'receives') query = query.eq('recipient_id', session.user.id);
+    const { data, error } = await query;
+    if (error) { target.innerHTML = `<p class="empty-note">${escapeHtml(error.message)}</p>`; return; }
+    target.innerHTML = offerTable(data || [], mode);
+    if (mode === 'donations') {
+      const claimedOffers = (data || []).filter(offer => offer.status === 'claimed');
+      if (claimedOffers.length) target.insertAdjacentHTML('beforeend', `<section class="sheet sage"><div class="sheet-head"><div><h2>Claimant collection details</h2><p>Only you and the successful recipient can see these handoff details.</p></div></div><div class="detail-grid">${claimedOffers.map(offer => `<div class="detail-cell"><strong>${escapeHtml(offer.food_name)}</strong><span>${escapeHtml(offer.recipient_contact_name || 'Recipient')} · ${escapeHtml(offer.recipient_phone || 'No phone provided')}</span><span>${escapeHtml(offer.pickup_mode === 'driver' ? 'Volunteer driver requested' : 'Recipient will collect')}</span><span>${escapeHtml(offer.pickup_address || 'No address provided')}</span>${offer.pickup_notes ? `<span>${escapeHtml(offer.pickup_notes)}</span>` : ''}</div>`).join('')}</div></section>`);
+    }
+    target.querySelectorAll('[data-claim-offer]').forEach(button => button.addEventListener('click', () => {
+      claimOffer = (data || []).find(offer => offer.id === button.dataset.claimOffer) || null;
+      renderView('claim');
+    }));
+  };
+
+  const renderView = view => {
+    currentView = view;
+    const HOME_LIVE = () => `<section class="view"><div class="greeting"><div><h1>Welcome, ${firstName}.</h1><p>EcoBite shows activity from your real rescue network. Sample offers and sample statistics are not displayed.</p><div class="greeting-meta"><span class="pill pill-leaf">${roleName}</span></div></div><button class="btn btn-primary" data-open-view="${profile.role === 'donor' ? 'donate' : 'receive'}">${profile.role === 'donor' ? 'Share food' : 'View available food'}</button></div><section class="sheet"><div class="sheet-head"><div><h2>Ready when you are</h2><p>Your published offers, claims, and collection plans will appear in the records area.</p></div></div><div class="detail-grid"><div class="detail-cell"><strong>Food donors</strong><span>Share food and see claimant contact and pickup details in Your donations.</span></div><div class="detail-cell"><strong>Receiving organisations</strong><span>Claim food and provide a collection plan.</span></div><div class="detail-cell"><strong>Volunteer drivers</strong><span>Manage delivery availability from Nearby matching.</span></div></div></section></section>`;
+    const templates = {home:HOME_LIVE,donate:DONATE,receive:LIVE_RECEIVE,claim:CLAIM,donations:() => LIVE_RECORDS('donations'),receives:() => LIVE_RECORDS('receives'),forecast:FORECAST,matching:NETWORK,routing:ROUTING_LIVE,profile:PROFILE,settings:SETTINGS};
+    viewMount.innerHTML = (templates[view] || HOME)();
+    document.querySelectorAll('.side-link[data-view]').forEach(button => { const active = button.dataset.view === view; button.setAttribute('aria-current', active ? 'page' : 'false'); });
+    history.replaceState(null,'',`?view=${view}${preview?'&preview=1':''}`);
+    bindView();
+    if (!preview && view === 'receive') void loadOffers('available');
+    if (!preview && view === 'donations') void loadOffers('donations');
+    if (!preview && view === 'receives') void loadOffers('receives');
+    if(!preview && view === 'matching') void loadNetwork();
+    if(!preview && view === 'routing') void loadDeliveries();
+    if(!reduceMotion){ requestAnimationFrame(() => viewMount.querySelectorAll('.view-intro,.sheet,.form-sheet,.route-column,.table-wrap').forEach((element,index) => { element.style.animation = `popIn .42s var(--ease) ${Math.min(index * .035,.18)}s both`; })); }
+    viewMount.focus({preventScroll:true});
+  };
+  const bindView = () => {
+    viewMount.querySelectorAll('[data-open-view]').forEach(button => button.addEventListener('click', () => renderView(button.dataset.openView)));
+    viewMount.querySelectorAll('[data-filter]').forEach(button => button.addEventListener('click', () => { currentFilter = button.dataset.filter; viewMount.querySelectorAll('.filter-tab').forEach(tab => tab.classList.toggle('on', tab === button)); const list = document.getElementById('homeOfferList'); if(list) list.innerHTML = offerRows(); bindView(); }));
+    viewMount.querySelectorAll('[data-offer]').forEach(button => button.addEventListener('click', () => { const offer = OFFERS.find(item => item.id === button.dataset.offer); if(offer) { offer.claimed = true; showToast(`${offer.name} is on your receive list.`); renderView(currentView); } }));
+    const donateForm = document.getElementById('donateForm');
+    donateForm?.querySelectorAll('[data-category]').forEach(button => button.addEventListener('click', () => { donateForm.querySelectorAll('[data-category]').forEach(item => item.classList.toggle('on', item === button)); }));
+    donateForm?.addEventListener('submit', async event => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (!session) { showToast('Please sign in before creating a donation.'); return; }
+      const formData = new FormData(donateForm);
+      const category = donateForm.querySelector('[data-category].on')?.dataset.category?.toLowerCase();
+      if (!category) { showToast('Choose a food category.'); return; }
+      const { error } = await sb.from('food_offers').insert({
+        donor_id: session.user.id,
+        city: profile.city,
+        category,
+        food_name: formData.get('food'),
+        quantity: Number(formData.get('quantity')),
+        unit: formData.get('unit'),
+        collect_by: formData.get('deadline')
+      });
+      if (error) { showToast(error.message); return; }
+      donateForm.reset();
+      showToast('Donation published for nearby receivers.');
+      renderView('donations');
+    });
+    donateForm?.addEventListener('submit', event => { event.preventDefault(); showToast('Food is available to nearby receivers.'); donateForm.reset(); });
+    const claimOfferForm = document.getElementById('claimOfferForm');
+    claimOfferForm?.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!session || !claimOffer) return;
+      const formData = new FormData(claimOfferForm);
+      const submit = claimOfferForm.querySelector('[type="submit"]');
+      submit.disabled = true;
+      const { error } = await sb.from('food_offers').update({
+        status: 'claimed', recipient_id: session.user.id, claimed_at: new Date().toISOString(),
+        recipient_contact_name: formData.get('contact_name'), recipient_phone: formData.get('phone'),
+        pickup_address: formData.get('address'), pickup_mode: formData.get('pickup_mode'), pickup_notes: formData.get('notes') || null
+      }).eq('id', claimOffer.id).eq('status', 'open').is('recipient_id', null);
+      if (error) { showToast(error.message); submit.disabled = false; return; }
+      const pickupCopy = formData.get('pickup_mode') === 'driver' ? 'A driver request can now be arranged.' : 'The donor has your collection details.';
+      claimOffer = null;
+      showToast(`Food claimed. ${pickupCopy}`);
+      renderView('receives');
+    });
+    const profileForm = document.getElementById('profileForm');
+    profileForm?.addEventListener('submit', async event => { event.preventDefault(); const formData = new FormData(profileForm); profile.full_name = formData.get('full_name'); profile.city = formData.get('city'); profile.role = formData.get('role'); ['sideCity','topCity'].forEach(id => document.getElementById(id).textContent = profile.city); ['sideName','topName'].forEach(id => document.getElementById(id).textContent = profile.full_name); showToast('Profile details saved for this session.'); if(session) await sb.from('profiles').update({full_name:profile.full_name,city:profile.city,role:profile.role}).eq('id',session.user.id); });
+    document.getElementById('settingsForm')?.addEventListener('submit', event => { event.preventDefault(); showToast('Rescue preferences saved.'); });
+  };
+  const loadNetwork = async () => {
+    const target = document.getElementById('networkResults'); if(!target) return;
+    try {
+      if(profile.role === 'org') {
+        const data = await ecoApi(`/v1/network/donors?city=${encodeURIComponent(profile.city)}&q=`);
+        target.innerHTML = data.donors.length ? `<div class="offer-list">${data.donors.map(d => `<article class="offer-row"><span><h3>${escapeHtml(d.name)}</h3><span class="where">${escapeHtml([d.org_kind,d.city].filter(Boolean).join(' · '))}</span></span><button class="btn btn-leaf btn-sm" data-donor="${d.id}" data-donor-name="${escapeHtml(d.name)}">Request delivery</button></article>`).join('')}</div>` : '<p class="empty-note">No registered donors found in this city yet.</p>';
+        target.querySelectorAll('[data-donor]').forEach(button => button.addEventListener('click', () => { const form=document.getElementById('deliveryRequestForm'); form.hidden=false; form.elements.donor_id.value=button.dataset.donor; document.getElementById('selectedDonor').textContent=`Delivery request for ${button.dataset.donorName}`; form.scrollIntoView({block:'center',behavior:'smooth'}); }));
+        document.getElementById('deliveryRequestForm')?.addEventListener('submit', async event => { event.preventDefault(); const f=new FormData(event.currentTarget); try { await ecoApi('/v1/deliveries',{method:'POST',body:JSON.stringify({donor_id:f.get('donor_id'),pickup:{latitude:+f.get('pickup_latitude'),longitude:+f.get('pickup_longitude')},dropoff:{latitude:+f.get('dropoff_latitude'),longitude:+f.get('dropoff_longitude')},delivery_mode:f.get('delivery_mode'),offered_amount:f.get('offered_amount') ? +f.get('offered_amount') : null,food_summary:f.get('food_summary'),notes:f.get('notes')})}); showToast('Delivery request created.'); renderView('routing'); } catch(e){showToast(e.message);} });
+      } else if(profile.role === 'donor') {
+        const load=async()=>{const mode=document.getElementById('driverMode').value; const data=await ecoApi(`/v1/network/drivers?city=${encodeURIComponent(profile.city)}&mode=${mode}`); target.innerHTML=data.drivers.length?`<div class="offer-list">${data.drivers.map(d=>`<article class="offer-row"><span><h3>${escapeHtml(d.full_name)}</h3><span class="where">${escapeHtml(d.transport || 'Driver')} · ${d.delivery_mode} · ${d.base_fee ?? 'No fee'}</span></span></article>`).join('')}</div>`:'<p class="empty-note">No available drivers match this option.</p>';}; await load(); document.getElementById('driverMode').addEventListener('change',()=>void load());
+      } else {
+        const data=await ecoApi(`/v1/deliveries/open?city=${encodeURIComponent(profile.city)}`); target.innerHTML=data.deliveries.length?`<div class="offer-list">${data.deliveries.map(j=>`<article class="offer-row"><span><h3>${escapeHtml(j.donor_name)} → ${escapeHtml(j.receiver_name)}</h3><span class="where">${escapeHtml(j.food_summary || 'Food delivery')} · ${j.delivery_mode}${j.offered_amount ? ` · ${j.offered_amount}` : ''}</span></span><button class="btn btn-leaf btn-sm" data-claim="${j.id}">Claim</button></article>`).join('')}</div>`:'<p class="empty-note">No open delivery jobs in your city.</p>'; target.querySelectorAll('[data-claim]').forEach(b=>b.addEventListener('click',async()=>{try{await ecoApi(`/v1/deliveries/${b.dataset.claim}/claim`,{method:'POST'});showToast('Delivery claimed.');renderView('routing');}catch(e){showToast(e.message)}})); document.getElementById('driverPreferences')?.addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.currentTarget);try{await ecoApi('/v1/drivers/me/preferences',{method:'PUT',body:JSON.stringify({service_city:f.get('service_city'),delivery_mode:f.get('delivery_mode'),base_fee:f.get('base_fee')?+f.get('base_fee'):null,max_distance_km:+f.get('max_distance_km'),is_available:f.get('is_available')==='on'})});showToast('Availability saved.')}catch(err){showToast(err.message)}});
+      }
+    } catch(error) { target.innerHTML=`<p class="empty-note">${escapeHtml(error.message)}</p>`; }
+  };
+  const loadDeliveries = async () => { const target=document.getElementById('deliveryRows'); if(!target) return; try { const data=await ecoApi('/v1/deliveries/mine'); target.innerHTML=data.deliveries.length?`<div class="offer-list">${data.deliveries.map(j=>`<article class="offer-row"><span><h3>${escapeHtml(j.donor_name)} → ${escapeHtml(j.receiver_name)}</h3><span class="where">${escapeHtml(j.food_summary || 'Food delivery')} · ${j.status}</span></span><button class="btn btn-outline btn-sm" data-route="${j.id}">View route</button>${(profile.role==='donor'||profile.role==='org')&&j.status!=='delivered'&&j.status!=='cancelled'?`<button class="btn btn-outline btn-sm" data-cancel="${j.id}">Cancel</button>`:''}${profile.role==='driver'&&j.driver_id===session.user.id&&j.status==='claimed'?`<button class="btn btn-leaf btn-sm" data-status="${j.id}" data-next="in_progress">Start</button>`:''}${profile.role==='driver'&&j.driver_id===session.user.id&&j.status==='in_progress'?`<button class="btn btn-leaf btn-sm" data-status="${j.id}" data-next="delivered">Deliver</button><button class="btn btn-outline btn-sm" data-track="${j.id}">Share GPS</button>`:''}</article>`).join('')}</div>`:'<p class="empty-note">No deliveries assigned to you yet.</p>'; target.querySelectorAll('[data-status]').forEach(b=>b.addEventListener('click',async()=>{try{await ecoApi(`/v1/deliveries/${b.dataset.status}/status`,{method:'POST',body:JSON.stringify({status:b.dataset.next})});showToast('Delivery updated.');void loadDeliveries();}catch(e){showToast(e.message)}})); target.querySelectorAll('[data-cancel]').forEach(b=>b.addEventListener('click',async()=>{if(!confirm('Cancel this delivery request?'))return;try{await ecoApi(`/v1/deliveries/${b.dataset.cancel}/status`,{method:'POST',body:JSON.stringify({status:'cancelled'})});showToast('Delivery cancelled.');void loadDeliveries();}catch(e){showToast(e.message)}})); target.querySelectorAll('[data-route]').forEach(b=>b.addEventListener('click',()=>void showRoute(b.dataset.route))); target.querySelectorAll('[data-track]').forEach(b=>b.addEventListener('click',()=>{if(trackingWatchId!==null){navigator.geolocation.clearWatch(trackingWatchId);trackingWatchId=null;b.textContent='Share GPS';showToast('Location sharing stopped.');return;} if(!navigator.geolocation){showToast('This browser does not support GPS sharing.');return;} if(!confirm('Share your live location only while this active delivery is in progress?'))return; trackingWatchId=navigator.geolocation.watchPosition(async p=>{try{await ecoApi(`/v1/deliveries/${b.dataset.track}/location`,{method:'POST',body:JSON.stringify({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy_m:p.coords.accuracy,heading:p.coords.heading||null})});b.textContent='Stop sharing GPS';}catch(e){showToast(e.message)}},()=>showToast('Location permission was not granted.'),{enableHighAccuracy:true,maximumAge:15000});})); }catch(error){target.innerHTML=`<p class="empty-note">${escapeHtml(error.message)}</p>`;} };
+  let leafletMap;
+  const showRoute = async jobId => { const panel=document.getElementById('routePanel'), status=document.getElementById('routeStatus'); panel.hidden=false; status.textContent='Loading route and live tracking…'; try { const [route,tracking]=await Promise.all([ecoApi(`/v1/deliveries/${jobId}/route`),ecoApi(`/v1/deliveries/${jobId}/tracking`)]); if(leafletMap) leafletMap.remove(); leafletMap=L.map('routeMap'); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(leafletMap); const points=route.routes?.[0]?.geometry?.coordinates?.map(p=>[p[1],p[0]])||[]; const bounds=[]; if(points.length){L.polyline(points,{color:'#4b8f4b',weight:5}).addTo(leafletMap);bounds.push(...points);} const trail=tracking.points.map(p=>[Number(p.latitude),Number(p.longitude)]); if(trail.length){L.polyline(trail,{color:'#e89342',weight:4,dashArray:'6 8'}).addTo(leafletMap);L.marker(trail[trail.length-1]).addTo(leafletMap).bindPopup('Latest driver location');bounds.push(...trail);} if(bounds.length) leafletMap.fitBounds(bounds,{padding:[24,24]}); else leafletMap.setView([0,0],2); status.textContent=trail.length?'Live tracking shown for this delivery.':'Route shown; the driver has not shared a live location yet.'; panel.scrollIntoView({block:'center',behavior:'smooth'}); }catch(error){status.textContent=error.message;} };
+  const escapeHtml = value => String(value).replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
+  const renderSearch = async query => {
+    const results = document.getElementById('searchResults');
+    const clean = query.trim().toLowerCase();
+    if(!clean){ results.classList.remove('show'); results.innerHTML = ''; return; }
+    const matches = SEARCH_INDEX.filter(item => `${item.title} ${item.meta} ${item.type}`.toLowerCase().includes(clean));
+    // Receivers get live donor results from the backend in the same existing
+    // search popover. Static dashboard results remain available if the API is
+    // not running yet or this is preview mode.
+    if(!preview && profile.role === 'org' && profile.city) {
+      try {
+        const data = await ecoApi(`/v1/network/donors?city=${encodeURIComponent(profile.city)}&q=${encodeURIComponent(clean)}`);
+        if(document.getElementById('globalSearch').value.trim().toLowerCase() !== clean) return;
+        data.donors.forEach(donor => matches.push({
+          type:'Registered donors', title:donor.name, meta:[donor.org_kind, donor.city].filter(Boolean).join(' · '), view:'receive'
+        }));
+      } catch(error) {
+        console.info('Live donor search is unavailable:', error.message);
+      }
+    }
+    if(!matches.length){ results.innerHTML = '<p class="empty-note">No offer, pickup, or location matched that search.</p>'; results.classList.add('show'); return; }
+    const groups = matches.reduce((all,item) => { (all[item.type] ||= []).push(item); return all; }, {});
+    results.innerHTML = Object.entries(groups).map(([type,items]) => `<div class="search-group"><strong>${escapeHtml(type)}</strong>${items.map(item => `<button class="search-result" data-search-view="${escapeHtml(item.view)}" data-search-target="${escapeHtml(item.target || '')}"><span><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.meta)}</span></span></button>`).join('')}</div>`).join('');
+    results.classList.add('show');
+    results.querySelectorAll('.search-result').forEach(button => button.addEventListener('click', () => { const view = button.dataset.searchView; const target = button.dataset.searchTarget; renderView(view); if(target) setTimeout(() => document.getElementById(target)?.scrollIntoView({block:'center',behavior:reduceMotion?'auto':'smooth'}), 60); results.classList.remove('show'); }));
+  };
+  document.getElementById('globalSearch').addEventListener('input', event => { void renderSearch(event.target.value); });
+  document.addEventListener('keydown', event => { if(event.key === '/' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){ event.preventDefault(); document.getElementById('globalSearch').focus(); } if(event.key === 'Escape') document.getElementById('searchResults').classList.remove('show'); });
+  document.addEventListener('click', event => { if(!event.target.closest('.search-wrap')) document.getElementById('searchResults').classList.remove('show'); });
+  const sidebar = document.getElementById('sidebar');
+  document.getElementById('mobileMenu').addEventListener('click', event => { const open = sidebar.classList.toggle('is-open'); event.currentTarget.setAttribute('aria-expanded', String(open)); });
+  document.querySelectorAll('.side-link[data-view]').forEach(button => button.addEventListener('click', () => { sidebar.classList.remove('is-open'); document.getElementById('mobileMenu').setAttribute('aria-expanded','false'); renderView(button.dataset.view); }));
+  document.getElementById('signOutLink').addEventListener('click', async () => { if(session) await sb.auth.signOut(); window.location.href = 'index.html'; });
+  renderView(currentView);
+})();
+</script>
+</body>
+</html>
