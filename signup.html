@@ -208,14 +208,14 @@
     // Supabase Auth -> URL Configuration -> Redirect URLs.
     const signUpOptions = {data:{full_name:fullName,city}};
     if(window.location.protocol !== 'file:') {
-      signUpOptions.emailRedirectTo = new URL('home.html', window.location.href).href;
+      signUpOptions.emailRedirectTo = new URL('confirmed.html', window.location.href).href;
     }
     const {data,error} = await sb.auth.signUp({email,password,options:signUpOptions});
     if(error){
       submitBtn.classList.remove('loading'); submitBtn.disabled = false; submitLabel.textContent = 'Create account';
       note.textContent = error.message || 'Something went wrong creating your account. Please try again.'; note.classList.add('show'); return;
     }
-    if(data.session){ window.location.href = 'home.html'; return; }
+    if(data.session){ window.location.href = 'confirmed.html'; return; }
     document.getElementById('doneLine').textContent = 'We sent a confirmation email to ' + email + '. Open the link in that email to finish creating your account.';
     signupContent.style.display = 'none'; doneState.classList.add('show');
   });
