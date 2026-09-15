@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create your EcoBite account</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<style>
+  :root{
+    --auth-paper:#F2EFE2;
+    --auth-surface:#FFFDF6;
+    --auth-sage:#E1F0D8;
+    --auth-ink:#15231A;
+    --auth-soft:#3B4E40;
+    --auth-line:rgba(21,35,26,.14);
+  }
+  body.auth-page{background:var(--auth-paper);overflow-x:hidden;}
+  body.auth-page::before,body.auth-page::after{content:"";position:fixed;z-index:-1;pointer-events:none;border:1px solid rgba(79,154,82,.12);border-radius:50%;}
+  body.auth-page::before{width:42vw;height:42vw;left:-18vw;top:16vh;transform:rotate(-18deg);animation:paperDrift 24s ease-in-out infinite alternate;}
+  body.auth-page::after{width:32vw;height:32vw;right:-12vw;bottom:8vh;transform:rotate(24deg);animation:paperDrift 30s ease-in-out -8s infinite alternate-reverse;}
+  @keyframes paperDrift{from{translate:0 0;rotate:0deg;}to{translate:2vw -2vh;rotate:8deg;}}
+  .auth-main{min-height:calc(100vh - 82px);padding:56px 0 30px;}
+  .auth-wrap{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(280px,.72fr);gap:34px;align-items:stretch;}
+  .signup-sheet{background:rgba(255,253,246,.82);border:1px solid var(--auth-line);border-radius:24px;padding:clamp(28px,5vw,58px);box-shadow:var(--shadow);}
+  .auth-kicker{display:inline-flex;align-items:center;gap:8px;margin-bottom:18px;color:var(--leaf);font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
+  .auth-kicker::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 5px rgba(242,153,74,.13);}
+  .signup-sheet h1{max-width:12ch;font-size:clamp(2rem,4.3vw,3.35rem);margin-bottom:14px;}
+  .auth-intro{max-width:50ch;color:var(--auth-soft);margin-bottom:30px;}
+  .signup-progress{display:flex;align-items:center;gap:0;margin-bottom:34px;}
+  .signup-progress .dot{width:12px;height:12px;border:2px solid rgba(21,35,26,.24);border-radius:50%;background:var(--auth-paper);flex:none;}
+  .signup-progress .dot.current{border-color:var(--orange);background:var(--orange);box-shadow:0 0 0 5px rgba(242,153,74,.14);}
+  .signup-progress .dot.complete{border-color:var(--leaf);background:var(--leaf);}
+  .signup-progress .line{height:2px;flex:1;background:rgba(21,35,26,.12);}
+  .signup-progress .line.complete{background:linear-gradient(90deg,var(--leaf),var(--orange));}
+  .signup-progress-labels{display:flex;justify-content:space-between;margin-top:-24px;margin-bottom:28px;color:var(--text-faint);font-size:.75rem;}
+  .signup-progress-labels span:first-child{color:var(--orange-deep);font-weight:700;}
+  .signup-form{display:grid;gap:2px;}
+  .signup-form .field{margin-bottom:16px;}
+  .auth-pw-wrap{position:relative;}
+  .auth-pw-wrap input{padding-right:78px;}
+  .pw-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);min-height:36px;background:transparent;border:0;border-radius:8px;color:var(--auth-soft);font-size:.82rem;font-weight:700;padding:6px 10px;transition:background .2s ease,color .2s ease;}
+  .pw-toggle:hover{background:rgba(114,170,63,.12);color:var(--ink);}
+  .password-field:focus-within::after{content:"";display:block;height:2px;margin:7px 12px 0;background:linear-gradient(90deg,var(--leaf),var(--orange));transform-origin:left;animation:drawLine .65s var(--ease) both;}
+  @keyframes drawLine{from{transform:scaleX(0);opacity:0;}to{transform:scaleX(1);opacity:1;}}
+  .terms{display:flex;gap:10px;align-items:flex-start;margin:6px 0 22px;font-size:.86rem;color:var(--auth-soft);}
+  .terms input{margin-top:4px;accent-color:var(--leaf);width:17px;height:17px;flex:none;}
+  .terms a{color:var(--leaf);text-underline-offset:3px;}
+  .form-actions{display:flex;gap:12px;align-items:center;}
+  .form-actions .btn-primary{flex:1;}
+  .signup-form .form-note{margin-bottom:18px;}
+  .auth-aside{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;min-height:560px;padding:34px;background:var(--bg-deep);color:var(--paper);border-radius:24px;box-shadow:var(--shadow);}
+  .auth-aside::before{content:"";position:absolute;width:260px;height:260px;right:-100px;top:-100px;border:1px solid rgba(139,195,74,.25);border-radius:50%;}
+  .auth-aside::after{content:"";position:absolute;left:34px;right:34px;bottom:38px;height:1px;background:rgba(242,239,226,.16);}
+  .auth-aside h2{position:relative;z-index:1;max-width:10ch;font-size:clamp(1.7rem,3vw,2.45rem);margin-bottom:14px;}
+  .auth-aside>p{position:relative;z-index:1;max-width:30ch;color:rgba(242,239,226,.72);}
+  .auth-notes{position:relative;z-index:1;display:grid;gap:0;margin:38px 0 80px;}
+  .auth-note{display:grid;grid-template-columns:18px 1fr;gap:14px;padding:18px 0;border-top:1px solid rgba(242,239,226,.16);}
+  .auth-note:first-child{border-top:0;}
+  .auth-note .node{width:12px;height:12px;margin-top:5px;border:2px solid var(--leaf-bright);border-radius:50%;box-shadow:0 0 0 5px rgba(139,195,74,.1);}
+  .auth-note strong{display:block;margin-bottom:4px;font-family:'Fraunces',serif;font-size:1.08rem;}
+  .auth-note span{display:block;color:rgba(242,239,226,.64);font-size:.86rem;}
+  .auth-aside small{position:relative;z-index:1;color:rgba(242,239,226,.46);font-size:.78rem;}
+  .done-state{display:none;text-align:center;animation:popIn .5s var(--ease) both;}
+  .done-state.show{display:block;}
+  .done-state .check-mark{width:66px;height:66px;margin:0 auto 20px;fill:none;stroke:var(--leaf);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .done-state .check-mark circle{stroke-dasharray:64;stroke-dashoffset:64;opacity:.45;animation:drawStroke .6s ease forwards .05s;}
+  .done-state .check-mark path{stroke-dasharray:22;stroke-dashoffset:22;animation:drawStroke .4s ease forwards .45s;}
+  .done-state h2{font-size:clamp(1.8rem,3vw,2.5rem);margin-bottom:12px;}
+  .done-state p{max-width:42ch;margin:0 auto 26px;color:var(--auth-soft);}
+  .done-state .btn{min-width:180px;}
+  @media (max-width:900px){
+    .auth-wrap{grid-template-columns:1fr;max-width:720px;}
+    .auth-aside{min-height:0;}
+    .auth-notes{margin-bottom:40px;}
+  }
+  @media (max-width:560px){
+    .auth-main{padding:30px 0 10px;}
+    .signup-sheet{padding:26px 20px;border-radius:20px;}
+    .signup-sheet h1{max-width:14ch;}
+    .field-row{gap:0;}
+    .form-actions{flex-direction:column;align-items:stretch;}
+    .form-actions .btn{width:100%;}
+    .auth-aside{padding:28px 22px;border-radius:20px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    body.auth-page::before,body.auth-page::after{animation:none;}
+    .password-field:focus-within::after{animation:none;}
+    .done-state .check-mark circle,.done-state .check-mark path{animation:none;stroke-dashoffset:0;}
+  }
+</style>
+</head>
+<body class="auth-page">
+<header class="site-nav" id="siteNav">
+  <div class="wrap nav-row">
+    <a href="index.html" class="brand"><img src="logo-icon.webp" alt=""><span>ecobite</span></a>
+    <nav class="nav-links" aria-label="Primary navigation">
+      <a href="index.html#how">How it works</a>
+      <a href="index.html#impact">Impact</a>
+      <a href="index.html#network">Who it's for</a>
+    </nav>
+    <div class="nav-end"><a href="signin.html" class="btn btn-outline btn-sm">Sign in</a></div>
+  </div>
+</header>
+
+<main class="auth-main">
+  <div class="wrap auth-wrap">
+    <section class="signup-sheet" aria-labelledby="signupTitle">
+      <div id="signupContent">
+        <span class="auth-kicker">Create an account</span>
+        <h1 id="signupTitle">A clearer way to move good food.</h1>
+        <p class="auth-intro">Start with the essentials. Once you are in, EcoBite will help you finish your role, storage, and availability details from Profile or Settings.</p>
+
+        <div class="signup-progress" aria-hidden="true"><span class="dot current"></span><span class="line"></span><span class="dot"></span><span class="line"></span><span class="dot"></span></div>
+        <div class="signup-progress-labels" aria-hidden="true"><span>Account</span><span>Profile later</span><span>Dashboard</span></div>
+
+        <form class="signup-form" id="signupForm" novalidate>
+          <p class="form-note" id="formNote" aria-live="polite"></p>
+          <div class="field-row">
+            <label class="field"><span>Your name</span><input type="text" name="name" data-req placeholder="Priya Menon" autocomplete="name"><em class="error">Tell us your name so the dashboard can greet you.</em></label>
+            <label class="field"><span>City</span><input type="text" name="city" data-req placeholder="Visakhapatnam" autocomplete="address-level2"><em class="error">Add the city where you will rescue food.</em></label>
+          </div>
+          <label class="field"><span>Email</span><input type="email" name="email" data-req data-email placeholder="you@example.com" autocomplete="email"><em class="error">That email doesn't look right.</em></label>
+          <label class="field password-field"><span>Password</span><span class="auth-pw-wrap"><input type="password" name="password" data-req data-min="8" placeholder="At least 8 characters" autocomplete="new-password"><button class="pw-toggle" type="button" id="pwToggle" aria-pressed="false">Show</button></span><em class="error">Use 8 characters or more.</em></label>
+          <label class="terms"><input type="checkbox" id="terms" required><span>I agree to the <a href="#">food handling guidelines</a> and <a href="#">terms of use</a>.</span></label>
+          <div class="form-actions"><button type="submit" class="btn btn-primary" id="submitBtn"><span class="spinner" aria-hidden="true"></span><span id="submitLabel">Create account</span></button></div>
+        </form>
+      </div>
+
+      <section class="done-state" id="doneState" aria-live="polite" aria-labelledby="doneTitle">
+        <svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7.4 12.4l3.1 3.1 6.1-6.6"/></svg>
+        <h2 id="doneTitle">Check your email.</h2>
+        <p id="doneLine">We sent a confirmation email so you can finish creating your account.</p>
+        <a class="btn btn-primary" href="signin.html">Go to sign in</a>
+      </section>
+    </section>
+
+    <aside class="auth-aside" aria-label="What you can do next">
+      <div>
+        <h2>Food moves better when the details connect.</h2>
+        <p>Your account is the starting point. Complete the role that fits you once you are inside the dashboard.</p>
+        <div class="auth-notes">
+          <div class="auth-note"><i class="node" aria-hidden="true"></i><span><strong>Donate food</strong><span>Flag surplus before it turns and keep every handoff visible.</span></span></div>
+          <div class="auth-note"><i class="node" aria-hidden="true"></i><span><strong>Receive what fits</strong><span>Set storage and capacity so nearby offers stay useful.</span></span></div>
+          <div class="auth-note"><i class="node" aria-hidden="true"></i><span><strong>Move it while it matters</strong><span>Choose pickup windows and follow the route from source to table.</span></span></div>
+        </div>
+      </div>
+      <small>EcoBite · rescue activity, connected.</small>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-foot"><div class="wrap foot-row"><span>© 2026 EcoBite. Concept preview — not a live service.</span><div class="foot-links"><a href="index.html">Home</a><a href="signin.html">Sign in</a><a href="home.html">Dashboard</a></div></div></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="supabase-client.js"></script>
+<script>
+  const reduceMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reduceMotion = reduceMotionQuery.matches;
+  const nav = document.getElementById('siteNav');
+  const form = document.getElementById('signupForm');
+  const note = document.getElementById('formNote');
+  const submitBtn = document.getElementById('submitBtn');
+  const submitLabel = document.getElementById('submitLabel');
+  const pwInput = document.querySelector('input[name="password"]');
+  const pwToggle = document.getElementById('pwToggle');
+  const terms = document.getElementById('terms');
+  const signupContent = document.getElementById('signupContent');
+  const doneState = document.getElementById('doneState');
+
+  document.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 10), {passive:true});
+  const flagField = (input, bad) => input.closest('.field')?.classList.toggle('invalid', bad);
+  const updateMotion = () => { reduceMotion = reduceMotionQuery.matches; };
+  if(reduceMotionQuery.addEventListener) reduceMotionQuery.addEventListener('change', updateMotion); else reduceMotionQuery.addListener(updateMotion);
+
+  pwToggle.addEventListener('click', () => {
+    const showing = pwInput.type === 'text';
+    pwInput.type = showing ? 'password' : 'text';
+    pwToggle.textContent = showing ? 'Show' : 'Hide';
+    pwToggle.setAttribute('aria-pressed', String(!showing));
+  });
+
+  form.querySelectorAll('input').forEach(input => input.addEventListener('input', () => { flagField(input, false); note.classList.remove('show'); }));
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    note.classList.remove('show');
+    let firstBad = null;
+    form.querySelectorAll('[data-req]').forEach(input => {
+      let bad = !input.value.trim();
+      if(!bad && input.dataset.email) bad = !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(input.value.trim());
+      if(!bad && input.dataset.min) bad = input.value.length < Number(input.dataset.min);
+      flagField(input, bad);
+      if(bad && !firstBad) firstBad = input;
+    });
+    if(!terms.checked){ terms.closest('.terms').classList.add('shake'); window.setTimeout(() => terms.closest('.terms').classList.remove('shake'), 500); if(!firstBad) firstBad = terms; }
+    if(firstBad){ firstBad.focus({preventScroll:true}); firstBad.scrollIntoView({block:'center',behavior:reduceMotion?'auto':'smooth'}); return; }
+
+    const email = form.querySelector('[name="email"]').value.trim();
+    const password = pwInput.value;
+    const fullName = form.querySelector('[name="name"]').value.trim();
+    const city = form.querySelector('[name="city"]').value.trim();
+    submitBtn.classList.add('loading'); submitBtn.disabled = true; submitLabel.textContent = 'Creating your account';
+    // Do not rely on Supabase's Site URL here: it may still be a localhost
+    // development address. The deployed app URL must also be allow-listed in
+    // Supabase Auth -> URL Configuration -> Redirect URLs.
+    const signUpOptions = {data:{full_name:fullName,city}};
+    if(window.location.protocol !== 'file:') {
+      signUpOptions.emailRedirectTo = new URL('home.html', window.location.href).href;
+    }
+    const {data,error} = await sb.auth.signUp({email,password,options:signUpOptions});
+    if(error){
+      submitBtn.classList.remove('loading'); submitBtn.disabled = false; submitLabel.textContent = 'Create account';
+      note.textContent = error.message || 'Something went wrong creating your account. Please try again.'; note.classList.add('show'); return;
+    }
+    if(data.session){ window.location.href = 'home.html'; return; }
+    document.getElementById('doneLine').textContent = 'We sent a confirmation email to ' + email + '. Open the link in that email to finish creating your account.';
+    signupContent.style.display = 'none'; doneState.classList.add('show');
+  });
+</script>
+</body>
+</html>
